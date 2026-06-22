@@ -28,8 +28,27 @@ API_V4 by the SDK's 34-byte output-length rule.
 | Set colour | `03 27` + `[r, g, b, 00, count, id0, id1, …]` |
 | Update | `03 21 00 03 00 ff` |
 
-Light ids `0..15` cover the power button, lid alien-head and rear strip (all
-respond; a precise id→light split is not yet needed since they're set together).
+Light ids `0..15` cover the lid alien-head and rear strip via `setOneColor`.
+
+### The power button is special
+
+The front power-button light is a **power-state light** (id **2** on the m15 R2)
+— its colour is stored per power state, and the normal `setOneColor` does *not*
+change it. It must be programmed with the `setPower` command (`03 22`) for each
+state id `0x5b..0x60` (AC/battery × sleep/power, charge, critical):
+
+```
+setPower  03 22 00 04 00 <cid>     # init state
+setPower  03 22 00 01 00 <cid>
+colorSel  03 23 01 00 01 <lightid>
+colorSet  03 24 00 <type 0> 00 d0 00 fa <r> <g> <b>
+setPower  03 22 00 02 00 <cid>     # end state
+...repeat per cid...
+commit    03 21 00 05 00 ff
+```
+
+This driver programs the awake states (`0x5c` AC, `0x5d` charge, `0x5f` battery)
+so the button tracks the chosen colour whenever the machine is in use.
 
 ## The keyboard's HID interface
 

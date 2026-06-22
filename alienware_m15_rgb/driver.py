@@ -190,7 +190,14 @@ class Keyboard:
 CHASSIS_VID = 0x187C
 CHASSIS_PID = 0x0550
 CHASSIS_REPORT_LEN = 34
-CHASSIS_LIGHT_IDS = tuple(range(16))   # covers power button, lid head, strip
+CHASSIS_LIGHT_IDS = tuple(range(16))   # covers lid head + rear strip
+# The power button is a "power light" — its colour is stored per power state and
+# the normal colour command doesn't touch it. We reprogram the awake states
+# (AC power / charging / battery power) so it tracks the chosen colour.
+# On the m15 R2 the power-button light is id 2 (set ALIENWARE_POWER_IDS to
+# override / re-discover on other units).
+POWER_STATES = (0x5C, 0x5D, 0x5F)
+POWER_LIGHT_IDS = (2,)
 
 
 def find_chassis(vid: int = CHASSIS_VID, pid: int = CHASSIS_PID) -> str | None:
@@ -251,8 +258,26 @@ class Chassis:
         self._out([0x03, 0x27], [(3, [r, g, b, 0, len(ids)] + ids)])  # COMMV4_setOneColor
         self._update()
 
+    def _v4_action(self, index: int, r: int, g: int, b: int) -> None:
+        # COMMV4_colorSel (select light) + COMMV4_colorSet (steady Color, opcode 0xd0)
+        self._out([0x03, 0x23, 0x01, 0x00, 0x01], [(6, [index])])
+        self._out([0x03, 0x24, 0x00, 0x07, 0xD0, 0x00, 0xFA],
+                  [(3, [0, 0, 0xD0, 0, 0xFA, r, g, b])])
+
+    def set_power(self, r: int, g: int, b: int) -> None:
+        """Reprogram the power-button light's awake power-states to (r,g,b)."""
+        self._update()
+        for index in POWER_LIGHT_IDS:
+            for cid in POWER_STATES:
+                self._out([0x03, 0x22], [(4, [4, 0, cid])])   # COMMV4_setPower init
+                self._out([0x03, 0x22], [(4, [1, 0, cid])])
+                self._v4_action(index, r, g, b)
+                self._out([0x03, 0x22], [(4, [2, 0, cid])])   # finish state
+        self._out([0x03, 0x21, 0x00, 0x03, 0x00, 0xFF], [(4, [5])])  # commit
+
     def set_solid(self, r: int, g: int, b: int) -> None:
-        self.set_lights(CHASSIS_LIGHT_IDS, r, g, b)
+        self.set_lights(CHASSIS_LIGHT_IDS, r, g, b)   # lid head + strip
+        self.set_power(r, g, b)                       # power button
 
     def off(self) -> None:
         self.set_solid(0, 0, 0)
