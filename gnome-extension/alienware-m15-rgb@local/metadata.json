@@ -1,0 +1,7 @@
+{
+  "uuid": "alienware-m15-rgb@local",
+  "name": "Alienware m15 RGB",
+  "description": "Control the Alienware m15 R2 per-key keyboard RGB from the top bar: match the wallpaper, pick colours/effects, adjust brightness. Requires the 'alienware-m15-rgb' CLI.",
+  "shell-version": ["45", "46", "47", "48", "49", "50"],
+  "version": 1
+}

@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "alienware-m15-rgb"
+version = "0.1.0"
+description = "Native Linux per-key RGB control for the Alienware m15 R2 keyboard (Darfon 0d62:0a1c)"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "GPL-3.0-or-later"
+authors = [{ name = "Louis Reed" }]
+keywords = ["alienware", "m15", "rgb", "keyboard", "alienfx", "linux", "hidraw"]
+classifiers = [
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Topic :: System :: Hardware",
+]
+dependencies = []   # stdlib only; ImageMagick is an optional runtime tool for `wallpaper`
+
+[project.urls]
+Homepage = "https://github.com/Louisreed/alienware-m15-rgb"
+Issues = "https://github.com/Louisreed/alienware-m15-rgb/issues"
+
+[project.scripts]
+alienware-m15-rgb = "alienware_m15_rgb.cli:main"
+
+[tool.setuptools]
+packages = ["alienware_m15_rgb"]

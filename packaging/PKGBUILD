@@ -1,0 +1,28 @@
+# Maintainer: Louis Reed
+pkgname=alienware-m15-rgb
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Native Linux per-key RGB control for the Alienware m15 R2 keyboard"
+arch=('any')
+url="https://github.com/Louisreed/alienware-m15-rgb"
+license=('GPL3')
+depends=('python')
+optdepends=('imagemagick: wallpaper colour matching'
+           'gnome-shell: top-bar menu extension')
+makedepends=('python-build' 'python-installer' 'python-setuptools' 'python-wheel')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+  cd "$pkgname-$pkgver"
+  python -m build --wheel --no-isolation
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  python -m installer --destdir="$pkgdir" dist/*.whl
+  install -Dm644 udev/99-alienware-m15-rgb.rules \
+    "$pkgdir/usr/lib/udev/rules.d/99-alienware-m15-rgb.rules"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
+}
