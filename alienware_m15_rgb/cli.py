@@ -161,7 +161,12 @@ def main(argv=None):
     elif args.cmd == "effect":
         et, c1, c2 = EFFECTS[args.name]
         if kb: kb.set_effect(et, args.tempo, c1, c2)
-        if ch: ch.set_solid(*c1)                # chassis has no matching effect; track colour 1
+        if ch:
+            # The chassis controller has no firmware animations, so during an
+            # effect we set it to the current theme's lead colour (the last
+            # wallpaper/solid choice) rather than leaving it stuck.
+            lead = _load_state().get("colors") or ["00AEEF"]   # fallback: Alienware blue
+            ch.set_solid(*_hex(lead[0]))
 
     elif args.cmd == "brightness":
         st = _load_state()

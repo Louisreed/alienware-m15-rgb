@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "alienware-m15-rgb"
-version = "0.2.1"
+version = "0.2.2"
 description = "Native Linux per-key RGB control for the Alienware m15 R2 keyboard (Darfon 0d62:0a1c)"
 readme = "README.md"
 requires-python = ">=3.8"

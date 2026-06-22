@@ -5,7 +5,7 @@ from .driver import (
     Chassis, find_chassis,
 )
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 __all__ = [
     "Keyboard", "KeyboardNotFound", "find_keyboard",
     "Chassis", "find_chassis",
