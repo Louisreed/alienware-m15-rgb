@@ -15,19 +15,22 @@ Linux.
 
 ## Features
 
-- Set the whole keyboard to a solid colour
-- Spread a palette across the keyboard (bands)
-- **Match your desktop wallpaper** automatically
+- Control **both** lighting controllers, kept in sync:
+  - **Per-key keyboard** (Darfon, API_V5)
+  - **Chassis** — power button, lid alien-head, rear light strip (AW-ELC, API_V4)
+- Solid colour, palette across the keyboard, or **match your desktop wallpaper**
 - Firmware effects (wave, breathing, pulse, …)
 - Brightness scaling
+- `--target keyboard|chassis|both` to scope commands
 - Optional **GNOME top-bar menu** to drive it all
-- Pure stdlib Python + `hidraw` ioctls — no C, no daemon, no external libs
+- Pure stdlib Python + `hidraw` — no C, no daemon, no external libs
 
 ## Supported hardware
 
 | Device | USB ID | Status |
 |---|---|---|
 | Alienware m15 R2 per-key keyboard (Darfon) | `0d62:0a1c` | ✅ tested |
+| Alienware m15 R2 chassis lights (AW-ELC) | `187c:0550` | ✅ tested |
 
 Other Alienware notebooks using the same Darfon "API_V5" keyboard (vendor HID
 Usage `0xCC`, Report ID `0xCC`) are likely compatible — please open an issue

@@ -2,4 +2,7 @@
 # Grant the active desktop user write access to the hidraw node so the keyboard
 # can be controlled without root. Reload with:
 #   sudo udevadm control --reload-rules && sudo udevadm trigger
+# Per-key keyboard (Darfon)
 KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0d62", ATTRS{idProduct}=="0a1c", MODE="0660", TAG+="uaccess"
+# Chassis lighting: power button, lid alien-head, rear strip (Alienware AW-ELC)
+KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="187c", ATTRS{idProduct}=="0550", MODE="0660", TAG+="uaccess"

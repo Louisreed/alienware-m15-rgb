@@ -9,11 +9,27 @@ The m15 R2 splits lighting across **two** USB devices:
 
 | Function | USB ID | Notes |
 |---|---|---|
-| **Per-key keyboard** | `0d62:0a1c` (Darfon) | This project. Vendor HID, feature reports. |
-| Chassis: power button, lid logo, light bars | `187c:0550` (Alienware AW-ELC) | Different protocol; partial OpenRGB support. |
+| **Per-key keyboard** | `0d62:0a1c` (Darfon) | API_V5, vendor HID **feature** reports. |
+| **Chassis**: power button, lid alien-head, rear strip | `187c:0550` (Alienware AW-ELC) | API_V4, **output** reports. |
 
-This is why OpenRGB/AlienFX appear to "work" (they bind the AW-ELC) yet the keys
-never change — the keys are on the **other** controller.
+Both are supported by this project. OpenRGB/AlienFX only ever bind the AW-ELC
+(and unreliably), which is why the keys never changed for anyone — the keys are
+on the *other* controller entirely.
+
+## Chassis controller (AW-ELC `187c:0550`, API_V4)
+
+Report descriptor: Usage Page `0xFF00`, a 33-byte **OUTPUT** report, no report
+id → on Linux send 34-byte `write()`s (`buf[0]=0` report id). Determined as
+API_V4 by the SDK's 34-byte output-length rule.
+
+| Step | Bytes (after report id 0) |
+|---|---|
+| Reset | `03 21 00 04 00 ff` then `03 21 00 01 00 ff` |
+| Set colour | `03 27` + `[r, g, b, 00, count, id0, id1, …]` |
+| Update | `03 21 00 03 00 ff` |
+
+Light ids `0..15` cover the power button, lid alien-head and rear strip (all
+respond; a precise id→light split is not yet needed since they're set together).
 
 ## The keyboard's HID interface
 

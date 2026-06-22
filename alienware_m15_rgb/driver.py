@@ -180,3 +180,79 @@ class Keyboard:
             (n_colors - 1) & 0xFF, c1[0], c1[1], c1[2], c2[0], c2[1], c2[2],
         )
         self._update()
+
+
+# ---------------------------------------------------------------------------
+# Chassis controller: power button, lid alien-head, rear light strip.
+# Alienware AW-ELC, USB 187c:0550, AlienFX "API_V4". 34-byte OUTPUT reports
+# (report id 0) sent via write(). See docs/PROTOCOL.md.
+# ---------------------------------------------------------------------------
+CHASSIS_VID = 0x187C
+CHASSIS_PID = 0x0550
+CHASSIS_REPORT_LEN = 34
+CHASSIS_LIGHT_IDS = tuple(range(16))   # covers power button, lid head, strip
+
+
+def find_chassis(vid: int = CHASSIS_VID, pid: int = CHASSIS_PID) -> str | None:
+    for path in sorted(glob.glob("/sys/class/hidraw/hidraw*")):
+        try:
+            uevent = open(os.path.join(path, "device", "uevent")).read().upper()
+        except OSError:
+            continue
+        if f"{vid:04X}" in uevent and f"{pid:04X}" in uevent:
+            return "/dev/" + os.path.basename(path)
+    return None
+
+
+class Chassis:
+    """Control object for the AW-ELC chassis lighting (API_V4)."""
+
+    def __init__(self, device: str | None = None):
+        self.device = device or find_chassis()
+        if not self.device:
+            raise KeyboardNotFound("Alienware chassis controller (187c:0550) not found")
+        try:
+            self.fd = os.open(self.device, os.O_RDWR)
+        except PermissionError as exc:
+            raise PermissionError(
+                f"{self.device}: permission denied. Install the udev rule and re-login."
+            ) from exc
+
+    def close(self) -> None:
+        if getattr(self, "fd", None) is not None:
+            os.close(self.fd)
+            self.fd = None
+
+    def __enter__(self) -> "Chassis":
+        return self
+
+    def __exit__(self, *exc) -> None:
+        self.close()
+
+    def _out(self, payload, mods=None) -> None:
+        buf = bytearray(CHASSIS_REPORT_LEN)        # buf[0] = 0 (report id)
+        buf[1 : 1 + len(payload)] = bytes(payload)
+        if mods:
+            for off, vals in mods:
+                buf[off : off + len(vals)] = bytes(vals)
+        os.write(self.fd, bytes(buf))
+        time.sleep(0.005)
+
+    def _reset(self) -> None:
+        self._out([0x03, 0x21, 0x00, 0x03, 0x00, 0xFF], [(4, [4])])  # COMMV4_control
+        self._out([0x03, 0x21, 0x00, 0x03, 0x00, 0xFF], [(4, [1])])
+
+    def _update(self) -> None:
+        self._out([0x03, 0x21, 0x00, 0x03, 0x00, 0xFF])
+
+    def set_lights(self, ids, r: int, g: int, b: int) -> None:
+        ids = list(ids)
+        self._reset()
+        self._out([0x03, 0x27], [(3, [r, g, b, 0, len(ids)] + ids)])  # COMMV4_setOneColor
+        self._update()
+
+    def set_solid(self, r: int, g: int, b: int) -> None:
+        self.set_lights(CHASSIS_LIGHT_IDS, r, g, b)
+
+    def off(self) -> None:
+        self.set_solid(0, 0, 0)
